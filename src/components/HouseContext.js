@@ -1,5 +1,4 @@
 import { useState, useEffect, createContext } from "react";
-
 import { housesData } from "../data";
 
 export const HouseContext = createContext();
@@ -26,83 +25,39 @@ const HouseContextProvider = ({ children }) => {
     const allProperties = houses.map((house) => {
       return house.type;
     });
-    const uniqueProperties = ["Location (any)", ...new Set(allProperties)];
+    const uniqueProperties = ["Property type (any)", ...new Set(allProperties)];
 
     setProperties(uniqueProperties);
   }, []);
 
   const handleClick = () => {
     setLoading(true);
+
     const isDefault = (str) => {
-      return str.split(" ").includes("(any)");
+      return str.includes("(any)");
     };
 
     const minPrice = parseInt(price.split(" ")[0]);
     const maxPrice = parseInt(price.split(" ")[2]);
+
     const newHouses = housesData.filter((house) => {
       const housePrice = parseInt(house.price);
 
       if (
-        house.country === country &&
-        house.type === property &&
-        housePrice >= minPrice &&
-        housePrice <= maxPrice
+        (country === "Location (any)" || house.country === country) &&
+        (property === "Property type (any)" || house.type === property) &&
+        (price === "Price range (any)" ||
+          (!isNaN(housePrice) &&
+            housePrice >= minPrice &&
+            housePrice <= maxPrice))
       ) {
         return house;
-      }
-
-      if (isDefault(country) && isDefault(property) && isDefault(price)) {
-        return house;
-      }
-
-      if (!isDefault(country) && isDefault(property) && isDefault(price)) {
-        return house.country === country;
-      }
-
-      if (!isDefault(property) && isDefault(country) && isDefault(price)) {
-        return house.type === property;
-      }
-
-      if (!isDefault(price) && isDefault(country) && isDefault(property)) {
-        if (housePrice >= minPrice && housePrice <= maxPrice) {
-          return house;
-        }
-      }
-
-      if (!isDefault(country) && !isDefault(property) && isDefault(price)) {
-        return house.type === property;
-      } else if (
-        !isDefault(country) &&
-        !isDefault(property) &&
-        !isDefault(price)
-      ) {
-        const housePrice = parseInt(house.price);
-        if (
-          !isNaN(housePrice) &&
-          housePrice >= minPrice &&
-          housePrice <= maxPrice
-        ) {
-          return house.type === property;
-        }
-      }
-
-      if (!isDefault(country) && isDefault(property) && !isDefault(price)) {
-        if (housePrice >= minPrice && housePrice <= maxPrice) {
-          return house.country === country;
-        }
-      }
-
-      if (isDefault(country) && !isDefault(property) && !isDefault(price)) {
-        if (housePrice >= minPrice && housePrice <= maxPrice) {
-          return house.type === property;
-        }
       }
     });
+
     setTimeout(() => {
-      return (
-        newHouses.length < 1 ? setHouses([]) : setHouses(newHouses),
-        setLoading(false)
-      );
+      setHouses(newHouses.length < 1 ? [] : newHouses);
+      setLoading(false);
     }, 1000);
   };
 
